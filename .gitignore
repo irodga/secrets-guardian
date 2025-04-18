@@ -1,0 +1,25 @@
+# Terraform state
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+*.backup
+
+# Terraform crash logs
+crash.log
+*.log
+
+# Terraform dir
+.terraform/
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+terraform.tfvars.json
+
+# Override files
+override.tf
+override.tf.json
+
+# Local .terraformrc or credentials (por si trabajas con perfiles locales)
+.terraformrc
+terraform.rc
