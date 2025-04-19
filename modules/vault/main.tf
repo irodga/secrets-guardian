@@ -24,6 +24,7 @@ resource "aws_security_group" "vault_sg" {
 
 resource "aws_iam_role" "vault_ec2_role" {
   name = "vault-ec2-role"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -60,12 +61,20 @@ resource "aws_iam_role_policy" "vault_policy" {
           "s3:PutObject"
         ],
         Resource = "arn:aws:s3:::${var.vault_bucket}/*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:CreateSecret",
+          "secretsmanager:PutSecretValue"
+        ],
+        Resource = "arn:aws:secretsmanager:${var.region}:*:secret:guardian-vault-init*"
       }
     ]
   })
 }
 
-# ✅ Agregamos permisos para usar SSM
 resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.vault_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -77,20 +86,19 @@ resource "aws_iam_instance_profile" "vault_profile" {
 }
 
 resource "aws_instance" "vault" {
-  ami                         = var.vault_ami_id
-  instance_type               = var.vault_instance_type
-  subnet_id                   = var.subnet_id
-  security_groups             = [aws_security_group.vault_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.vault_profile.name
-  associate_public_ip_address = false
+  ami                    = var.vault_ami_id
+  instance_type          = var.vault_instance_type
+  subnet_id              = var.subnet_id
+  vpc_security_group_ids = [aws_security_group.vault_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.vault_profile.name
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    vault_bucket = var.vault_bucket
-    fsx_dns      = var.fsx_dns
-    kms_key_arn  = var.kms_key_arn
+    fsx_dns    = var.fsx_dns
+    region     = var.region
+    kms_key_id = var.kms_key_id
   })
 
   tags = {
-    Name = "vault-server"
+    Name = "${var.cluster_name}-vault"
   }
 }

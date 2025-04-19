@@ -22,12 +22,23 @@ module "fsx" {
 }
 
 module "vault" {
-  source               = "./modules/vault"
-  vault_ami_id         = var.vault_ami_id
-  vault_instance_type  = var.vault_instance_type
-  vault_bucket         = module.bootstrap.vault_bucket_name
-  kms_key_arn          = module.kms.kms_key_arn
-  fsx_dns              = module.fsx.fsx_dns_name
-  subnet_id            = module.vpc.private_subnets[0]
-  vpc_id               = module.vpc.vpc_id
+  source = "./modules/vault"
+
+  vpc_id              = module.vpc.vpc_id
+  subnet_id           = module.vpc.private_subnets[0]
+  fsx_dns             = module.fsx.dns_name
+  vault_ami_id        = var.vault_ami_id
+  vault_instance_type = var.vault_instance_type
+  vault_bucket        = "guardian-vault-storage"
+
+  # Variables dinámicas:
+  kms_key_arn = module.kms.kms_key_arn
+  kms_key_id  = module.kms.kms_key_id
+
+  # Variables que sí vienen de terraform.tfvars
+  region        = var.region
+  cluster_name  = var.cluster_name
+  key_name      = var.key_name
+
+  depends_on = [module.fsx]
 }

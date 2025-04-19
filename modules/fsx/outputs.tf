@@ -15,3 +15,8 @@ output "fsx_id" {
   description = "ID del FSx for OpenZFS"
   value       = aws_fsx_openzfs_file_system.vault_fsx.id
 }
+
+output "dns_name" {
+  description = "Alias compatible con módulos que esperan dns_name"
+  value       = aws_fsx_openzfs_file_system.vault_fsx.dns_name
+}
